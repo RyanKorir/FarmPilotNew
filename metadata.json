@@ -1,0 +1,8 @@
+{
+  "name": "FarmPilot",
+  "description": "A comprehensive digital farm management platform for tracking livestock, production, inventory, and sales with smart insights.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}

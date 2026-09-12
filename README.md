@@ -1,37 +1,64 @@
 # FarmPilot
 
-A Kenya-focused farm management web app for small-scale farmers — livestock, health, production, inventory, and finance tracking.
+A Kenya-focused farm management web app for small-scale farmers — livestock tracking, health records, production, inventory, finance, AI assistant, and weather forecasting.
 
 ## Stack
-React 19 + TypeScript + Vite 6 + Tailwind v4 + Supabase (Postgres + RLS) + Gemini API
 
-## Run locally
+React 19 · TypeScript · Vite 6 · Tailwind v4 · Supabase (Postgres + Auth + Realtime) · Gemini AI · Vercel
 
-**Prerequisites:** Node.js 20+
+## Quick Deploy (Vercel)
 
-1. Install dependencies:
-   ```
-   npm install
-   ```
-2. Copy `.env.example` to `.env.local` and fill in your Supabase project URL/anon key (and Gemini key for AI features):
-   ```
-   cp .env.example .env.local
-   ```
-3. Run the app:
-   ```
-   npm run dev
-   ```
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/RyanKorir/FarmPilotNew)
 
-## Deploy on Render
+1. Click the button above or go to [vercel.com](https://vercel.com) → New Project → Import `FarmPilotNew`
+2. Add these environment variables:
 
-This repo includes a `render.yaml` Blueprint.
+| Variable | Description |
+|---|---|
+| `VITE_SUPABASE_URL` | Your Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Your Supabase anon/public key |
+| `VITE_GEMINI_API_KEY` | Your Google Gemini API key |
 
-1. Push this repo to GitHub.
-2. In Render, choose **New → Blueprint**, connect the repo, and Render will read `render.yaml` automatically.
-3. When prompted, fill in the environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GEMINI_API_KEY`) — these are marked `sync: false` so they're never stored in the repo.
-4. Deploy. Render runs `npm install && npm run build`, then `npm start`.
+3. Click **Deploy** — done.
 
-Alternatively, deploy manually as a Web Service without the Blueprint:
-- Build command: `npm install && npm run build`
-- Start command: `npm start`
-- Add the same three environment variables in the Render dashboard.
+## Run Locally
+
+```bash
+npm install
+cp .env.example .env.local   # fill in your keys
+npm run dev
+```
+
+## Environment Variables
+
+Copy `.env.example` to `.env.local` and fill in:
+
+```
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_GEMINI_API_KEY=your-gemini-key
+```
+
+## Project Structure
+
+```
+├── api/
+│   └── weather.ts          # Vercel serverless function (weather proxy)
+├── src/
+│   ├── components/         # All UI components
+│   ├── context/            # React context (FarmContext)
+│   ├── lib/
+│   │   ├── supabaseClient.ts   # Supabase client
+│   │   ├── supabaseAuth.ts     # Auth (mirrors Firebase API)
+│   │   └── firestoreShim.ts    # Firestore→Supabase query shim
+│   ├── services/
+│   │   └── weatherService.ts
+│   ├── utils/
+│   └── types.ts
+├── vercel.json             # Vercel configuration
+└── vite.config.ts
+```
+
+## Supabase Setup
+
+Run the migration SQL in your Supabase SQL Editor to create all required tables with RLS policies. See `supabase_migration.sql`.

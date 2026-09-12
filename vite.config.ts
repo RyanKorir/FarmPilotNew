@@ -8,15 +8,32 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),
-      // ── Migration shim aliases ─────────────────────────────────────────────
-      // Components import from 'firebase/firestore' and 'firebase/auth'.
-      // We redirect those to our Supabase-backed shims so no component
-      // file needs to change.
+      // Migration shim aliases — redirect Firebase imports to Supabase shims
       'firebase/firestore': path.resolve(__dirname, 'src/lib/firestoreShim.ts'),
       'firebase/auth':      path.resolve(__dirname, 'src/lib/supabaseAuth.ts'),
     },
   },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          supabase: ['@supabase/supabase-js'],
+          charts: ['recharts'],
+          motion: ['motion'],
+        },
+      },
+    },
+  },
   server: {
-    hmr: process.env.DISABLE_HMR !== 'true',
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
   },
 });

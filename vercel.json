@@ -1,15 +1,18 @@
 {
+  "framework": "vite",
   "buildCommand": "vite build",
   "outputDirectory": "dist",
-  "framework": "vite",
+  "installCommand": "npm install",
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
     {
-      "source": "/api/weather",
-      "destination": "/api/weather"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "s-maxage=300" }
+      ]
     }
   ]
 }

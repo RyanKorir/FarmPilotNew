@@ -7,12 +7,8 @@
 import { supabase } from './supabaseClient';
 import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 
-// ---------------------------------------------------------------------------
-// Types that mirror what Firebase exposes (subset used by the app)
-// ---------------------------------------------------------------------------
-
 export interface SupabaseUser {
-  uid: string;            // maps from supabase user.id
+  uid: string;
   email: string | null;
   emailVerified: boolean;
   displayName: string | null;
@@ -25,7 +21,6 @@ export interface SupabaseUser {
     email: string | null;
     photoURL: string | null;
   }[];
-  // Raw Supabase user reference for anything that needs it
   _raw: User;
 }
 
@@ -49,19 +44,11 @@ function mapUser(user: User | null): SupabaseUser | null {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Auth state object — mirrors Firebase's `auth` export
-// ---------------------------------------------------------------------------
-
 export const auth = {
   get currentUser(): SupabaseUser | null {
-    // supabase.auth.getUser() is async; we use the cached session synchronously
-    const session = supabase.auth.getSession() as unknown as { data?: { session: Session | null } };
-    // getSession() returns a Promise, so we keep a local cache updated via onAuthStateChanged
     return _cachedUser;
   },
   onAuthStateChanged(callback: (user: SupabaseUser | null) => void): () => void {
-    // Fire immediately with current state
     supabase.auth.getSession().then(({ data }) => {
       const mapped = mapUser(data.session?.user ?? null);
       _cachedUser = mapped;
@@ -69,10 +56,15 @@ export const auth = {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event: AuthChangeEvent, session: Session | null) => {
+      (event: AuthChangeEvent, session: Session | null) => {
         const mapped = mapUser(session?.user ?? null);
         _cachedUser = mapped;
         callback(mapped);
+
+        // Clean token hash from URL after OAuth redirect
+        if (event === 'SIGNED_IN' && window.location.hash.includes('access_token')) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
       }
     );
 
@@ -82,7 +74,6 @@ export const auth = {
 
 let _cachedUser: SupabaseUser | null = null;
 
-// Initialise cache on module load
 supabase.auth.getSession().then(({ data }) => {
   _cachedUser = mapUser(data.session?.user ?? null);
 });
@@ -91,11 +82,7 @@ supabase.auth.onAuthStateChange((_event, session) => {
   _cachedUser = mapUser(session?.user ?? null);
 });
 
-// ---------------------------------------------------------------------------
-// Auth operations — mirror Firebase function signatures used in the app
-// ---------------------------------------------------------------------------
-
-/** Google OAuth – opens redirect flow (replaces signInWithPopup) */
+/** Google OAuth – PKCE flow, no token in URL hash */
 export async function signIn(): Promise<void> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
@@ -171,9 +158,4 @@ export function onAuthStateChanged(
   return auth.onAuthStateChanged(callback);
 }
 
-// ---------------------------------------------------------------------------
-// Firebase compatibility alias
-// ---------------------------------------------------------------------------
-
-/** Type alias so components that import `User` from 'firebase/auth' still compile. */
 export type User = SupabaseUser;

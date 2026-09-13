@@ -15,6 +15,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    flowType: 'pkce', // uses code exchange — keeps tokens OUT of the URL hash
   },
   realtime: {
     params: { eventsPerSecond: 10 },
